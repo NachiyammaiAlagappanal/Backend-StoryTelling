@@ -1,10 +1,6 @@
 import dotenv from 'dotenv/config';
 import express from 'express';
-import {GoogleGenAI} from "@google/genai";
-
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+import generateStory from './storyGenerator.js';
 
 const app = express();
 
@@ -20,13 +16,26 @@ app.listen(3000, () => {
 
 
 app.post('/generateStory', async (req, res) => {
+  try {
     const {character, age} = req.body;
-    const response = await ai.models.generateContent({
-    model: "models/gemini-3.5-flash",
-    contents: `Write a short story about a ${age}-year-old ${character} and a dragon.`,
-  });
-  console.log(response);
-  res.json(response);
+
+    if (!character || !age) {
+      return res.status(400).json({ error: 'character and age are required' });
+    }
+
+    const prompt = `Write a short story about a ${age}-year-old ${character} and a dragon.`;
+    const story = await generateStory(prompt);
+    const storyText = story?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!storyText) {
+      throw new Error('No story content returned from the generator.');
+    }
+
+    res.json({ story: storyText });
+  } catch (error) {
+    console.error('Error generating story:', error);
+    res.status(500).json({ error: 'Failed to generate story' });
+  }
 });
 
 
