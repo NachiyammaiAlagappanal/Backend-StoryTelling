@@ -1,6 +1,7 @@
 import dotenv from 'dotenv/config';
 import express from 'express';
-import generateStory from './storyGenerator.js';
+import generateStory from './textGeneration.js';
+import generateImage from './imageGenerator.js';
 
 const app = express();
 
@@ -16,26 +17,22 @@ app.listen(3000, () => {
 
 
 app.post('/generateStory', async (req, res) => {
-  try {
-    const {character, age} = req.body;
+      const {character, age} = req.body;
 
-    if (!character || !age) {
-      return res.status(400).json({ error: 'character and age are required' });
-    }
-
-    const prompt = `Write a short story about a ${age}-year-old ${character} and a dragon.`;
+   const prompt = `Write a 200-word story about a ${age}-year-old ${character} and a dragon.`;
     const story = await generateStory(prompt);
-    const storyText = story?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!storyText) {
-      throw new Error('No story content returned from the generator.');
-    }
-
-    res.json({ story: storyText });
-  } catch (error) {
-    console.error('Error generating story:', error);
-    res.status(500).json({ error: 'Failed to generate story' });
-  }
+    res.json({story: story});
+    
 });
+
+app.post('/generateImage', async (req, res) => {
+      const {character, age} = req.body;
+
+   const prompt = `Generate an image of a lord vinayagar`;
+    const image = await generateImage(prompt);
+    res.json({image: image});
+
+});
+
 
 
